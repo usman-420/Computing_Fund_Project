@@ -1,0 +1,40 @@
+---
+- name: Configure jumpserver (VNC)
+  hosts: jumpserver
+  become: yes
+  tasks:
+    - name: Install desktop and VNC server
+      apt:
+        update_cache: yes
+        name:
+          - xfce4
+          - xfce4-goodies
+          - tightvncserver
+        state: present
+
+- name: Configure webserver (Apache + website)
+  hosts: webserver
+  become: yes
+  vars:
+    repo_url: "https://github.com/usman-420/Computing_Fund_Project.git"
+    webroot: "/var/www/html"
+  tasks:
+    - name: Install Apache and git
+      apt:
+        update_cache: yes
+        name:
+          - apache2
+          - git
+        state: present
+
+    - name: Ensure Apache is running
+      service:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Deploy website from GitHub
+      git:
+        repo: "{{ repo_url }}"
+        dest: "{{ webroot }}"
+        force: yes
