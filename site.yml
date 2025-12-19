@@ -33,8 +33,21 @@
         state: started
         enabled: yes
 
-    - name: Deploy website from GitHub
+       - name: Create temp folder for repo
+      file:
+        path: /tmp/site
+        state: directory
+        mode: "0755"
+
+    - name: Pull website from GitHub into temp folder
       git:
         repo: "{{ repo_url }}"
-        dest: "{{ webroot }}"
+        dest: /tmp/site
         force: yes
+
+    - name: Copy website into Apache webroot
+      copy:
+        src: /tmp/site/
+        dest: "{{ webroot }}/"
+        remote_src: yes
+
