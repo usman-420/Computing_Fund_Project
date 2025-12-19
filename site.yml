@@ -1,11 +1,12 @@
 ---
 - name: Configure jumpserver (VNC)
   hosts: jumpserver
-  become: yes
+  become: true
+
   tasks:
-    - name: Install desktop and VNC server
+    - name: Install desktop and VNC server packages
       apt:
-        update_cache: yes
+        update_cache: true
         name:
           - xfce4
           - xfce4-goodies
@@ -14,40 +15,42 @@
 
 - name: Configure webserver (Apache + website)
   hosts: webserver
-  become: yes
+  become: true
+
   vars:
     repo_url: "https://github.com/usman-420/Computing_Fund_Project.git"
     webroot: "/var/www/html"
+    tempdir: "/tmp/site"
+
   tasks:
     - name: Install Apache and git
       apt:
-        update_cache: yes
+        update_cache: true
         name:
           - apache2
           - git
         state: present
 
-    - name: Ensure Apache is running
+    - name: Ensure Apache is running and enabled
       service:
         name: apache2
         state: started
-        enabled: yes
+        enabled: true
 
-       - name: Create temp folder for repo
+    - name: Ensure temp directory exists
       file:
-        path: /tmp/site
+        path: "{{ tempdir }}"
         state: directory
         mode: "0755"
 
-    - name: Pull website from GitHub into temp folder
+    - name: Clone website repo into temp directory
       git:
         repo: "{{ repo_url }}"
-        dest: /tmp/site
-        force: yes
+        dest: "{{ tempdir }}"
+        force: true
 
-    - name: Copy website into Apache webroot
+    - name: Copy website content into Apache webroot
       copy:
-        src: /tmp/site/
+        src: "{{ tempdir }}/"
         dest: "{{ webroot }}/"
-        remote_src: yes
-
+        remote_src: true
